@@ -1,0 +1,7 @@
+node_modules/
+.nightshift/
+.tmp-test/
+ALERTS.md
+*.log
+.env
+.env.*

@@ -1,0 +1,74 @@
+# Incidents
+
+Real failures from the private system this harness was extracted from: three Claude Code jobs a day,
+scheduled on Windows Task Scheduler, running since 13 July 2026 (191 runs by 20 September). Each entry says
+what happened, what caught it, what should have caught it, and what changed. Numbers come from the
+system's own append-only logs, not from memory.
+
+## 1. Routing ran inverted for 33 days (2026-08-18 → 2026-09-20)
+
+**What happened.** The trust ledger picks the cheapest model that has proven itself for a class of task, and
+bans a model after too many failures. The ban rule counted *lifetime* failures with no denominator and no
+decay. One model was banned after 3 failures out of 6 runs — all three the same integrity error in a shared
+data file, which would have failed any model that day. The other candidate was banned on its 3rd
+lifetime failure; it went on to finish with 4 failures in **52 runs (92% pass rate)**, still banned. With every candidate banned, `route()`
+escalated to the most expensive candidate on **28 consecutive runs**. The cost-saving mechanism was
+running in reverse, and its own log said so every morning.
+
+**What caught it.** A human, by accident, during an unrelated review 33 days later.
+
+**What should have caught it.** The escalation was flagged — as a line in a run log nobody reads. A flag that
+is written only to a log is not a flag.
+
+**What changed.**
+- Bans are decided on a rolling window (3 failures in the last 10 runs), never a lifetime counter.
+- Rebuilding state replays the whole ledger under current rules, so fixing the rule re-judged history and
+  released the wrongly banned model without losing its 52 runs.
+- A ban never heals itself; only a human reset ends it (the `record` path accepts any model, so a backfill
+  could otherwise roll the window and lift a ban silently).
+- Two consecutive escalations raise a human alert; it clears itself when routing recovers.
+
+**Found in review before release.** Promotion to `trusted` still used a lifetime failure count, so a model
+demoted once could never earn trust back. Promotion now uses the same rolling window as the ban, and a
+test covers the demote → recover cycle.
+
+## 2. Autonomy silently off for two days (2026-07-25 → 26)
+
+**What happened.** The tamper gate refuses to run when a protected file (rules, prompts, hook config)
+differs from the last commit. A protected file was edited and not committed. Every scheduled job aborted
+for two days. Each abort wrote one line to a log.
+
+**What caught it.** The owner noticed nothing had run.
+
+**What changed.** An abort raises an idempotent alert (one line, not one per run) and the alert clears
+itself on the first clean run. The gate itself was right; its voice was wrong.
+
+## 3. A stale alert nobody could trust (2026-08-20 → 2026-09-20)
+
+**What happened.** A data-source health check raised "source dead" on 20 August. The source recovered; the
+health check reported 15/15 sources OK on every day of September. The alert was never cleared and was
+still present on 20 September — 31 days of a warning that was false.
+
+**Why it matters.** An alert that stays after recovery teaches the human to ignore alerts. The next real one
+is then invisible. This is how incident #1 stayed hidden: the owner had already stopped reading.
+
+**What changed.** Every alert has a clear path, and the job that raised it is responsible for clearing it on
+recovery. `alert.add` and `alert.clear` are both idempotent so the daily re-run neither floods nor forgets.
+
+## Background: 28 job failures in seven weeks (2026-07-23 → 2026-09-06)
+
+Twenty-eight scheduled runs failed across five jobs. They cluster on bad days (23–24 July, 24–25 August,
+4–5 September hit three jobs each) rather than on one bad job: no job failed on three consecutive days, so
+a breaker with a threshold of three would not have tripped on any of them. That is the point of the
+threshold: it stops loops, not bad days.
+
+## Lessons the code now encodes
+
+1. **Fail closed.** No git, no config, no network → the run does not start. An exception is a stop, not a pass.
+2. **Loud, not logged.** Anything a human must act on becomes a line in `ALERTS.md` (and, if configured, a push
+   to a phone). Logs are for forensics.
+3. **Alerts clear themselves.** Otherwise they train the human to ignore them.
+4. **Measure with code, judge with models.** Where a check can be code, it is — 100% coverage at zero cost.
+5. **Rules replay history.** State is derived from an append-only ledger; a rule fix re-judges the past.
+6. **No human present = stricter rules.** The same hook denies more when the permission mode says nobody is
+   watching.

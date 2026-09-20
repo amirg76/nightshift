@@ -1,0 +1,122 @@
+# nightshift
+
+**Run Claude Code unattended. Know when it goes wrong.**
+
+On 18 August 2026 a scheduled Claude Code system I run started sending every routine task to its most
+expensive model. Its own safety mechanism had inverted. The log said so every morning. I found out on
+20 September — 33 days later, by accident.
+
+Nothing was broken in the usual sense. Every run exited 0. That is the failure mode of unattended agents:
+they do not crash, they drift, and nobody is there to notice. `nightshift` is the harness I built around
+that system, extracted after the incident with the parts that would have caught it. The full story, with
+numbers, is in [INCIDENTS.md](INCIDENTS.md).
+
+## What is in the box
+
+Six small Node scripts, zero dependencies, one JSON config. Each one exists because of a specific failure.
+
+| part | what it does | the failure it answers |
+|---|---|---|
+| **preflight** | Refuses to run if a protected file (rules, prompts, hook config) differs from the last commit. | Tampering — or you edited the rules and forgot. |
+| **guard** (hook) | Deny-by-default `PreToolUse` hook: destructive commands, secret reads, download-and-run, payments, `git push`. Stricter when no human is present. | Prompt injection with nobody watching. |
+| **circuit** | A job that fails 3 times in a row is stopped until a human resets it. | A broken job burning quota in a daily loop. |
+| **trust** | A ledger of which model has *proven* it can do which class of task. Routes to the cheapest proven model; samples its output for review. Bans on a rolling window. | Cost routing that silently inverts (incident #1). |
+| **alert** | Idempotent alerts in `ALERTS.md` that clear themselves on recovery. Optional push to your phone via ntfy. | Flags written only to logs (incidents #1, #2, #3). |
+| **run** | The wrapper for a scheduled job: pause switch → preflight → network wait → circuit → lock → `claude -p` → retry → breaker. | Morning runs before DNS is up; overlapping runs; crash leftovers. |
+
+## Quick start
+
+```bash
+git clone https://github.com/amirg76/nightshift   # or copy the folder
+cd your-project
+cp path/to/nightshift/nightshift.config.example.json nightshift.config.json
+```
+
+Edit `nightshift.config.json`: list your protected files and your jobs.
+
+```json
+{
+  "protected": ["CLAUDE.md", ".claude/", "prompts/", "nightshift.config.json"],
+  "alerts": { "file": "ALERTS.md", "ntfy": "https://ntfy.sh/your-private-topic" },
+  "jobs": {
+    "daily-digest": { "prompt": "prompts/daily-digest.md", "model": "sonnet", "maxTurns": 40, "retry": true }
+  }
+}
+```
+
+Commit it (the tamper gate compares protected files against the last commit). Then schedule one command:
+
+```bash
+node path/to/nightshift/bin/nightshift.mjs run daily-digest
+```
+
+- **cron / launchd:** `0 6 * * * cd /your/project && node /path/nightshift/bin/nightshift.mjs run daily-digest`
+- **Windows Task Scheduler:** action = `node`, arguments = `E:\path\nightshift\bin\nightshift.mjs run daily-digest`, start in = your project.
+
+Wire the guard hook into the project's `.claude/settings.json` (or your user settings):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit", "hooks": [
+        { "type": "command", "command": "node /path/nightshift/hooks/guard.mjs", "timeout": 10 }
+      ] }
+    ]
+  }
+}
+```
+
+One screen tells you where you stand:
+
+```
+$ nightshift status
+root:   /your/project
+gate:   clean
+jobs:   daily-digest 0/3
+alerts: none
+trust:  no banned models
+```
+
+## Day-to-day commands
+
+```
+nightshift status
+nightshift run <job> [--retry]
+nightshift preflight
+nightshift circuit report | reset <job>
+nightshift trust report | route <class> | record <class> <model> pass|fail [note] | reset <class> <model> [reason]
+nightshift alert list | clear <key> [--id=x]
+```
+
+Kill switch: create the file `.nightshift/PAUSE`. Every job skips until you delete it.
+
+One `claude` at a time per project: jobs share the same quota and often the same files, so the lock is
+project-wide, not per job. A lock older than `lock.staleMinutes` (default 60) is treated as a crash
+leftover and reclaimed.
+
+## Design rules
+
+1. **Fail closed.** No git, no config, no network, an exception → the run does not start.
+2. **Loud, not logged.** Anything a human must act on is a line in `ALERTS.md`, optionally pushed to a phone. Logs are for forensics.
+3. **Alerts clear themselves.** A stale alert trains you to ignore the next real one.
+4. **No human present = stricter rules.** The guard reads the permission mode. Interactive sessions may edit the rules; unattended ones may not.
+5. **Verify with code where you can.** Zero tokens, 100% coverage. Save model judgement for what needs it.
+6. **State is a replayable ledger.** `trust.ndjson` is append-only; `trust.json` is derived. Fix a rule and history is re-judged.
+
+## What it is not
+
+- Not a cloud scheduler. It runs on your machine, next to your files. (Anthropic's cloud Routines run on a fresh clone and cannot see local state; the hook and the trust ledger still apply there.)
+- Not a sandbox. The guard is a policy layer on top of Claude Code's own permissions, aimed at the unattended case. Use it with Claude Code's sandbox, not instead of it.
+- Not a framework. Six files. Read them.
+
+## Status
+
+`v0.1` — extracted from a private system that has run three scheduled jobs a day since July 2026 (191 runs at
+extraction). Tests pass on Windows with Node 24 (`npm test`, 27 tests, seven of them pinning holes a pre-release review found); the code has no
+platform-specific paths, but Linux and macOS runs have not been verified yet. Roadmap, in order: `nightshift init`
+(scaffold + hook wiring), `nightshift drill` (a monthly fire drill that injects each failure mode and proves
+the alert path still works — incident #1 lived for 33 days because nothing ever tested the alert itself),
+a static status page, and a mapping of each part to the OWASP Agentic Top 10.
+
+MIT.

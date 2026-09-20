@@ -1,0 +1,14 @@
+{
+  "name": "nightshift-harness",
+  "version": "0.1.0",
+  "description": "Run Claude Code unattended. Know when it goes wrong. Tamper gate, deny-by-default hook, circuit breaker, model trust ledger, human alerts.",
+  "type": "module",
+  "bin": { "nightshift": "bin/nightshift.mjs" },
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "keywords": ["claude-code", "agent", "harness", "guardrails", "unattended", "cron", "circuit-breaker", "hooks"],
+  "license": "MIT",
+  "files": ["bin", "lib", "hooks", "README.md", "INCIDENTS.md", "LICENSE"]
+}
