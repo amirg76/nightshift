@@ -102,6 +102,22 @@ One `claude` at a time per project: jobs share the same quota and often the same
 project-wide, not per job. A lock older than `lock.staleMinutes` (default 60) is treated as a crash
 leftover and reclaimed.
 
+## The fire drill
+
+Incident #1 lived for 33 days because nothing ever tested the alert itself. So:
+
+```bash
+nightshift drill          # monthly; add --push to also test the phone
+```
+
+It builds a sandbox (its own git repo and state, under `.nightshift/drill/`), injects every failure mode —
+tampered rules, three failing runs, every model banned, a corrupt state file, a broken config, an
+unreachable API host — and checks that each alert is raised **and** clears again. Live state is never
+touched. A drill that fails raises a real alert: *the alert path itself is broken*. `status` shows when the
+alert path was last proven, and flags it overdue after 35 days.
+
+- **cron:** `0 7 1 * * cd /your/project && /path/to/nightshift/bin/nightshift.mjs drill --push`
+
 ## Design rules
 
 1. **Fail closed.** No git, no config, no network, an exception → the run does not start.
@@ -120,9 +136,8 @@ leftover and reclaimed.
 ## Status
 
 `v0.1` — extracted from a private system that has run three scheduled jobs a day since July 2026 (191 runs at
-extraction). `npm test` runs 32 tests (seven of them pin holes a pre-release review found) on Linux, macOS and Windows
-with Node 20 and 22 in CI. Roadmap, in order: `nightshift drill` (a monthly fire drill that injects each failure mode and proves
-the alert path still works — incident #1 lived for 33 days because nothing ever tested the alert itself),
-a static status page, and a mapping of each part to the OWASP Agentic Top 10.
+extraction). `npm test` runs 34 tests (seven of them pin holes a pre-release review found) on Linux, macOS and Windows
+with Node 20 and 22 in CI. Roadmap, in order: a static status page, and a mapping of each part to the
+OWASP Agentic Top 10.
 
 MIT.

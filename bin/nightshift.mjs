@@ -5,6 +5,7 @@ import { findRoot, loadConfig, stateDir } from '../lib/paths.mjs';
 const [cmd, ...rest] = process.argv.slice(2);
 const mods = {
   init: () => import('../lib/init.mjs'),
+  drill: () => import('../lib/drill.mjs'),
   run: () => import('../lib/run.mjs'),
   preflight: () => import('../lib/preflight.mjs'),
   netwait: () => import('../lib/netwait.mjs'),
@@ -28,13 +29,17 @@ async function status() {
   for (const a of alerts) console.log('  ' + a);
   const banned = tr.report(root).filter(r => r.state === 'banned');
   console.log(`trust:  ${banned.length ? 'BANNED ' + banned.map(r => `${r.model}@${r.cls}`).join(', ') : 'no banned models'}`);
+  const { lastDrill, OVERDUE_DAYS } = await import('../lib/drill.mjs');
+  const d = lastDrill(root);
+  console.log(`drill:  ${!d ? 'never run — the alert path is unproven: nightshift drill' : `${d.verdict} ${d.days} day(s) ago${d.overdue ? ` — OVERDUE (>${OVERDUE_DAYS}): nightshift drill` : ''}`}`);
   return 0;
 }
 
 const usage = () => { console.log(`nightshift <command>
 
   init                           set this project up: config, .gitignore, guard hook in .claude/settings.json
-  status                         one screen: gate, circuits, alerts, banned models
+  status                         one screen: gate, circuits, alerts, banned models, last drill
+  drill [--push]                 fire drill: inject every failure mode in a sandbox, prove each alert raises and clears
   run <job> [--retry]            run a configured job through the full harness
   preflight                      tamper gate: protected files vs last commit
   netwait                        wait for the API host to be reachable
