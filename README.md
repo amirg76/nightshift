@@ -118,6 +118,20 @@ alert path was last proven, and flags it overdue after 35 days.
 
 - **cron:** `0 7 1 * * cd /your/project && /path/to/nightshift/bin/nightshift.mjs drill --push`
 
+## The status page
+
+After every run and every drill, nightshift rebuilds one self-contained HTML file: days running, runs,
+failures, open alerts, gate state, last drill, model trust, and the last 25 harness events. Harness lines
+only — the agent's output and prompt contents never appear. No scripts, no external assets, dark and light.
+
+```json
+"page": { "auto": true, "out": "docs/status.html", "publishCmd": "git -C docs add status.html && git -C docs commit -qm status && git -C docs push -q" }
+```
+
+`out` is where the file goes (default `.nightshift/status.html`); `publishCmd` is an optional command run
+after each build — for example pushing a `docs/` folder that GitHub Pages serves. nightshift itself never
+pushes anything; that command is yours.
+
 ## Design rules
 
 1. **Fail closed.** No git, no config, no network, an exception → the run does not start.

@@ -6,6 +6,7 @@ const [cmd, ...rest] = process.argv.slice(2);
 const mods = {
   init: () => import('../lib/init.mjs'),
   drill: () => import('../lib/drill.mjs'),
+  page: () => import('../lib/page.mjs'),
   run: () => import('../lib/run.mjs'),
   preflight: () => import('../lib/preflight.mjs'),
   netwait: () => import('../lib/netwait.mjs'),
@@ -40,6 +41,7 @@ const usage = () => { console.log(`nightshift <command>
   init                           set this project up: config, .gitignore, guard hook in .claude/settings.json
   status                         one screen: gate, circuits, alerts, banned models, last drill
   drill [--push]                 fire drill: inject every failure mode in a sandbox, prove each alert raises and clears
+  page                           rebuild the status page (also happens after every run and drill)
   run <job> [--retry]            run a configured job through the full harness
   preflight                      tamper gate: protected files vs last commit
   netwait                        wait for the API host to be reachable

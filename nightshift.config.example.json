@@ -15,6 +15,7 @@
   "net": { "host": "api.anthropic.com", "port": 443, "tries": 10, "waitMs": 25000, "connectMs": 4000 },
   "lock": { "staleMinutes": 60 },
   "claude": { "bin": "claude", "permissionMode": "acceptEdits" },
+  "page": { "auto": true, "out": ".nightshift/status.html", "publishCmd": "" },
   "jobs": {
     "daily-digest": { "prompt": "prompts/daily-digest.md", "model": "sonnet", "maxTurns": 40, "retry": true, "timeoutMinutes": 45 }
   }
