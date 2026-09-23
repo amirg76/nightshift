@@ -36,7 +36,8 @@ nightshift init                            # config + .gitignore + guard hook in
 (No `npm link`? Every `nightshift …` below is `node /path/to/nightshift/bin/nightshift.mjs …`.)
 
 `init` merges into an existing `.claude/settings.json` and never removes anything. Then edit
-`nightshift.config.json`: list your protected files and your jobs.
+`nightshift.config.json`: list your protected files and your jobs. For phone alerts, the ntfy topic name is a
+shared secret — put it in a file outside git (`"ntfyFile": "../.ntfy-topic"`) rather than inline.
 
 ```json
 {

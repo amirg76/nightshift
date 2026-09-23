@@ -1,6 +1,6 @@
 {
   "protected": ["CLAUDE.md", ".claude/", "prompts/", "nightshift.config.json"],
-  "alerts": { "file": "ALERTS.md", "ntfy": "" },
+  "alerts": { "file": "ALERTS.md", "ntfy": "", "ntfyFile": "" },
   "circuit": { "threshold": 3 },
   "trust": {
     "window": 10, "banFails": 3, "probation": 10, "promoteMaxFails": 1, "demoteStreak": 2, "sample": 5,
