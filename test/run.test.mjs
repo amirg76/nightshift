@@ -30,6 +30,25 @@ test('full harness: fake claude exit 0 → END exit=0, no failure marker', async
   } finally { delete process.env.NIGHTSHIFT_CLAUDE_BIN; cleanup(dir); }
 });
 
+test('jobs.<job>.cwd runs claude elsewhere while state stays at the root', async () => {
+  const dir = tmpProject('run-cwd');
+  const { mkdirSync } = await import('node:fs');
+  mkdirSync(join(dir, 'elsewhere'));
+  writeFileSync(join(dir, 'fake-cwd.mjs'), "console.log('cwd=' + process.cwd()); process.exit(0);");
+  process.env.NIGHTSHIFT_CLAUDE_BIN = join(dir, 'fake-cwd.mjs');
+  try {
+    await withServer(async port => {
+      writeFileSync(join(dir, 'nightshift.config.json'), JSON.stringify({ net: { ...net, port }, jobs: { j: { prompt: 'prompts/job.md', cwd: 'elsewhere' } } }));
+      const { execFileSync } = await import('node:child_process');
+      execFileSync('git', ['add', 'nightshift.config.json'], { cwd: dir }); execFileSync('git', ['commit', '-q', '-m', 'cfg'], { cwd: dir });
+      assert.equal(await runJob(dir, 'j'), 0);
+      const log = readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8');
+      assert.match(log, new RegExp('cwd=' + join(dir, 'elsewhere').replace(/[\\\\^$.*+?()[\]{}|]/g, '\\$&')));
+      assert.ok(readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8').includes('j END exit=0'), 'state still written at the root');
+    });
+  } finally { delete process.env.NIGHTSHIFT_CLAUDE_BIN; cleanup(dir); }
+});
+
 test('three failing runs open the circuit; the fourth is skipped without launching', async () => {
   const dir = tmpProject('run-fail');
   process.env.NIGHTSHIFT_CLAUDE_BIN = fakeClaude(dir);

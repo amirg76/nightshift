@@ -38,7 +38,7 @@ async function status() {
 
 const usage = () => { console.log(`nightshift <command>
 
-  init                           set this project up: config, .gitignore, guard hook in .claude/settings.json
+  init [dir]                     set a project up: config, .gitignore, guard hook in .claude/settings.json
   status                         one screen: gate, circuits, alerts, banned models, last drill
   drill [--push]                 fire drill: inject every failure mode in a sandbox, prove each alert raises and clears
   page                           rebuild the status page (also happens after every run and drill)
