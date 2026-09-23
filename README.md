@@ -27,12 +27,16 @@ Six small Node scripts, zero dependencies, one JSON config. Each one exists beca
 ## Quick start
 
 ```bash
-git clone https://github.com/amirg76/nightshift   # or copy the folder
+git clone https://github.com/amirg76/nightshift
+cd nightshift && npm test && npm link      # npm link puts a global "nightshift" command on your PATH
 cd your-project
-cp path/to/nightshift/nightshift.config.example.json nightshift.config.json
+nightshift init                            # config + .gitignore + guard hook in .claude/settings.json
 ```
 
-Edit `nightshift.config.json`: list your protected files and your jobs.
+(No `npm link`? Every `nightshift …` below is `node /path/to/nightshift/bin/nightshift.mjs …`.)
+
+`init` merges into an existing `.claude/settings.json` and never removes anything. Then edit
+`nightshift.config.json`: list your protected files and your jobs.
 
 ```json
 {
@@ -44,22 +48,24 @@ Edit `nightshift.config.json`: list your protected files and your jobs.
 }
 ```
 
-Commit it (the tamper gate compares protected files against the last commit). Then schedule one command:
+Commit the three files `init` touched (the tamper gate compares protected files against the last commit;
+with no commit it refuses to run and says so). Then schedule one command:
 
 ```bash
-node path/to/nightshift/bin/nightshift.mjs run daily-digest
+nightshift run daily-digest
 ```
 
-- **cron / launchd:** `0 6 * * * cd /your/project && node /path/nightshift/bin/nightshift.mjs run daily-digest`
+- **cron / launchd:** `0 6 * * * cd /your/project && /path/to/nightshift/bin/nightshift.mjs run daily-digest`
 - **Windows Task Scheduler:** action = `node`, arguments = `E:\path\nightshift\bin\nightshift.mjs run daily-digest`, start in = your project.
 
-Wire the guard hook into the project's `.claude/settings.json` (or your user settings):
+`init` wires the guard hook for you. If you prefer to do it by hand, this is what it adds to
+`.claude/settings.json`:
 
 ```json
 {
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Bash|PowerShell|Write|Edit|MultiEdit", "hooks": [
+      { "matcher": "Bash|PowerShell|Read|Glob|Grep|Write|Edit|MultiEdit|NotebookEdit", "hooks": [
         { "type": "command", "command": "node /path/nightshift/hooks/guard.mjs", "timeout": 10 }
       ] }
     ]
@@ -81,6 +87,7 @@ trust:  no banned models
 ## Day-to-day commands
 
 ```
+nightshift init
 nightshift status
 nightshift run <job> [--retry]
 nightshift preflight
@@ -113,9 +120,8 @@ leftover and reclaimed.
 ## Status
 
 `v0.1` — extracted from a private system that has run three scheduled jobs a day since July 2026 (191 runs at
-extraction). Tests pass on Windows with Node 24 (`npm test`, 27 tests, seven of them pinning holes a pre-release review found); the code has no
-platform-specific paths, but Linux and macOS runs have not been verified yet. Roadmap, in order: `nightshift init`
-(scaffold + hook wiring), `nightshift drill` (a monthly fire drill that injects each failure mode and proves
+extraction). `npm test` runs 32 tests (seven of them pin holes a pre-release review found) on Linux, macOS and Windows
+with Node 20 and 22 in CI. Roadmap, in order: `nightshift drill` (a monthly fire drill that injects each failure mode and proves
 the alert path still works — incident #1 lived for 33 days because nothing ever tested the alert itself),
 a static status page, and a mapping of each part to the OWASP Agentic Top 10.
 

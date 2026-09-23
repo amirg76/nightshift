@@ -34,6 +34,15 @@ test('without git the gate fails closed', async () => {
   const dir = tmpProject('preflight-nogit', { git: false });
   try {
     const r = await preflight.run(dir);
-    assert.equal(r.ok, false); assert.match(r.dirty[0], /git unavailable/);
+    assert.equal(r.ok, false); assert.match(r.dirty[0], /not a git repository/);
+  } finally { cleanup(dir); }
+});
+
+test('a repo with no commits fails closed with a hint', async () => {
+  const dir = tmpProject('preflight-nocommit', { git: false });
+  try {
+    execFileSync('git', ['init', '-q'], { cwd: dir });
+    const r = await preflight.run(dir);
+    assert.equal(r.ok, false); assert.match(r.dirty[0], /no commits yet/);
   } finally { cleanup(dir); }
 });

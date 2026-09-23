@@ -6,14 +6,19 @@
 //   (b) denied only when NO human is present — editing protected files (rules, prompts, hook config).
 // "No human present" = permission_mode is one of the unattended modes. Interactive modes pass.
 // Every denial is logged to .nightshift/security-log.txt. Reads nightshift.config.json for the protected list.
-import { appendFileSync, mkdirSync, realpathSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { findRoot, loadConfig, STATE_DIRNAME } from '../lib/paths.mjs';
+import { appendFileSync, mkdirSync, realpathSync, existsSync } from 'node:fs';
+import { join, resolve, dirname, basename } from 'node:path';
+import { findRoot, loadConfig, STATE_DIRNAME, CONFIG_FILE } from '../lib/paths.mjs';
 
 const stdin = await new Promise(res => { let d = ''; process.stdin.setEncoding('utf8'); process.stdin.on('data', c => d += c); process.stdin.on('end', () => res(d)); process.stdin.on('error', () => res('')); });
 let input; try { input = JSON.parse(stdin); } catch { process.exit(0); }
 
-const root = findRoot(process.env.CLAUDE_PROJECT_DIR || process.cwd());
+// Which project's rules apply? Prefer the project that owns the file being touched (walk up from it
+// for a nightshift.config.json), then Claude Code's CLAUDE_PROJECT_DIR, then cwd. This keeps the guard
+// correct even when the hook is launched from an unrelated directory.
+const touched = String((input.tool_input || {}).file_path || (input.tool_input || {}).notebook_path || '');
+const fromFile = touched ? findRoot(dirname(resolve(touched))) : null;
+const root = fromFile && existsSync(join(fromFile, CONFIG_FILE)) ? fromFile : findRoot(process.env.CLAUDE_PROJECT_DIR || process.cwd());
 let cfg; try { cfg = loadConfig(root); } catch { cfg = { protected: [] }; }
 const UNATTENDED = ['acceptEdits', 'bypassPermissions', 'dontAsk'];
 const automated = UNATTENDED.includes(input.permission_mode || '');
@@ -79,7 +84,14 @@ if (tool === 'Write' || tool === 'Edit' || tool === 'MultiEdit' || tool === 'Not
   if (automated) {
     // Resolve the real path (follows symlinks/junctions, expands 8.3 short names on Windows) and compare
     // against the resolved protected entries, so "..", links and short names cannot dodge the list.
-    const real = p => { const abs = resolve(root, p); try { return realpathSync.native(abs); } catch { return abs; } };
+    // A file that does not exist yet has no real path; resolve its nearest existing ancestor and
+    // re-attach the rest, so a new file under a protected dir still compares on real paths.
+    const real = p => {
+      let abs = resolve(root, p); const tail = [];
+      while (!existsSync(abs)) { const parent = dirname(abs); if (parent === abs) break; tail.unshift(basename(abs)); abs = parent; }
+      try { abs = realpathSync.native(abs); } catch { }
+      return tail.length ? join(abs, ...tail) : abs;
+    };
     const norm = p => real(p).replace(/\\/g, '/').toLowerCase();
     const target = norm(raw);
     for (const p of cfg.protected || []) {

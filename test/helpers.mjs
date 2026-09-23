@@ -6,6 +6,9 @@ import { execFileSync } from 'node:child_process';
 
 export const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const TMP = join(REPO, '.tmp-test');
+// Temp projects live inside this repo's tree. Stop git from discovering the repo above them, so a
+// "no git" test really has no git — otherwise it silently passes inside a clone.
+process.env.GIT_CEILING_DIRECTORIES = TMP;
 
 export function tmpProject(name, { git = true, config = {} } = {}) {
   const dir = join(TMP, `${name}-${process.pid}-${Date.now()}`);

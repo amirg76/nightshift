@@ -105,6 +105,15 @@ test('review #6: a demoted model earns trust back after a clean probation window
   } finally { cleanup(dir); }
 });
 
+test('walkthrough: the hook finds the project from the touched file even with no env and a foreign cwd', () => {
+  const dir = tmpProject('rv-root', { git: false, config: { protected: ['CLAUDE.md'] } });
+  try {
+    const env = { ...process.env }; delete env.CLAUDE_PROJECT_DIR; delete env.NIGHTSHIFT_ROOT;
+    const r = spawnSync(process.execPath, [HOOK], { cwd: REPO, env, encoding: 'utf8', input: JSON.stringify({ tool_name: 'Edit', tool_input: { file_path: join(dir, 'CLAUDE.md') }, permission_mode: 'acceptEdits' }) });
+    assert.ok(denied(JSON.parse(r.stdout)), 'protected in the file\'s own project');
+  } finally { cleanup(dir); }
+});
+
 test('review #7: protected-file writes are matched on the resolved path, not the string', () => {
   const dir = tmpProject('rv-path', { git: false, config: { protected: ['CLAUDE.md', 'prompts/'] } });
   try {

@@ -6,7 +6,7 @@
   "bin": { "nightshift": "bin/nightshift.mjs" },
   "engines": { "node": ">=18" },
   "scripts": {
-    "test": "node --test \"test/*.test.mjs\""
+    "test": "node test/run-all.mjs"
   },
   "keywords": ["claude-code", "agent", "harness", "guardrails", "unattended", "cron", "circuit-breaker", "hooks"],
   "license": "MIT",
