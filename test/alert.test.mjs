@@ -34,5 +34,6 @@ test('the ntfy topic can live in a file outside git, as a bare topic or a full U
     writeFileSync(join(dir, '.ntfy-topic'), 'https://ntfy.example.org/t1');
     assert.equal(alert.ntfyUrl(loadConfig(dir)), 'https://ntfy.example.org/t1');
     assert.equal(alert.ntfyUrl({ ...loadConfig(dir), alerts: { ntfy: 'https://ntfy.sh/inline', ntfyFile: '.ntfy-topic' } }), 'https://ntfy.sh/inline', 'inline wins');
+    assert.equal(alert.ntfyUrl({ ...loadConfig(dir), alerts: { ntfyFile: join(dir, '.ntfy-topic') } }), 'https://ntfy.example.org/t1', 'an absolute ntfyFile path is honoured');
   } finally { cleanup(dir); }
 });
