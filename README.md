@@ -151,8 +151,8 @@ pushes anything; that command is yours.
 ## Status
 
 `v0.1` — extracted from a private system that has run three scheduled jobs a day since July 2026 (191 runs at
-extraction). `npm test` runs 34 tests (seven of them pin holes a pre-release review found) on Linux, macOS and Windows
-with Node 20 and 22 in CI. Roadmap, in order: a static status page, and a mapping of each part to the
+extraction). `npm test` runs 34 tests (seven of them pin holes a pre-release review found) on Linux with Node 20 and 22 on every push; the full Linux,
+macOS and Windows matrix passed and runs on demand and on version tags. Roadmap, in order: a static status page, and a mapping of each part to the
 OWASP Agentic Top 10.
 
 MIT.
