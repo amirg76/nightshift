@@ -57,5 +57,19 @@ try {
   else if (cmd === 'status') code = await status();
   else if (mods[cmd]) code = await (await mods[cmd]()).main(rest);
   else { console.error(`unknown command: ${cmd}`); code = usage() || 2; }
-} catch (e) { console.error(`nightshift ${cmd}: ${e.message}`); code = 1; }
+} catch (e) {
+  // Last line of defence. Under a scheduler nobody reads stderr, so an escaped exception also goes to the
+  // log and to ALERTS.md. Neither step may throw.
+  console.error(`nightshift ${cmd}: ${e.message}`);
+  try {
+    const { appendFileSync, readFileSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const root = findRoot();
+    appendFileSync(join(stateDir(root), 'log.txt'), `[${new Date().toISOString()}] UNCAUGHT in "${cmd}": ${e.message}\n`);
+    const f = join(root, 'ALERTS.md');
+    const cur = existsSync(f) ? readFileSync(f, 'utf8') : '# Alerts\n\n';
+    if (!cur.includes('[alert:uncaught]')) appendFileSync(f, `${cur.endsWith('\n') ? '' : '\n'}- ⚠ [alert:uncaught] ${new Date().toISOString().slice(0, 10)} — nightshift ${cmd} crashed: ${e.message} **Fix:** run the same command by hand to see it, then report it\n`);
+  } catch { }
+  code = 1;
+}
 process.exit(typeof code === 'number' ? code : 0);

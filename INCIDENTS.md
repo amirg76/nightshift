@@ -55,6 +55,34 @@ is then invisible. This is how incident #1 stayed hidden: the owner had already 
 **What changed.** Every alert has a clear path, and the job that raised it is responsible for clearing it on
 recovery. `alert.add` and `alert.clear` are both idempotent so the daily re-run neither floods nor forgets.
 
+## 4. The harness failed silently on its own first deployment (2026-09-24 → 27)
+
+**What happened.** nightshift's first real job was a daily browser scan, configured with an inline prompt
+(`promptText`) instead of a prompt file. The run wrapper resolved the prompt-file path unconditionally;
+with no file configured that path was undefined and Node threw — every day, one second after `START`,
+before `claude` was ever launched. The exception skipped everything that makes a failure visible: no `END`
+line, no failure marker, no count toward the circuit breaker, no alert. Task Scheduler recorded exit code
+1, where nobody looks. Four scheduled runs, zero scans, all harness gates green.
+
+**What caught it.** A pre-release checklist step: "confirm the real job actually ran through the harness".
+The log had four `START` lines and no `END` line.
+
+**What should have caught it.** The harness. It was built to turn silent failures into alerts, and it had a
+blind spot exactly where it could not see itself: an exception inside its own run loop. The fire drill
+tested every failure mode of the *job*, and none of the *harness*. 27 tests covered file-based prompts;
+none covered `promptText`.
+
+**What changed.**
+- Only a file-based job resolves a path.
+- Any exception between `START` and `END` is a failed run like any other (exit 70): logged with the
+  message, a failure marker, counted by the breaker, alerted at the threshold. Every `START` now has an `END`.
+- An exception that escapes to the CLI is written to the log and to `ALERTS.md` — the last line of
+  defence under a scheduler, where stderr goes nowhere.
+- The fire drill gained a `harness-crash` scenario: it injects a crash inside a run and checks all of the
+  above. Tests pin the `promptText` path and the crash path.
+
+**The lesson.** A watchdog must be tested on its own failures, not only on the failures it watches for.
+
 ## Background: 28 job failures in seven weeks (2026-07-23 → 2026-09-06)
 
 Twenty-eight scheduled runs failed across five jobs. They cluster on bad days (23–24 July, 24–25 August,

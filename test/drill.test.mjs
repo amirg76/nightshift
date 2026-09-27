@@ -13,7 +13,7 @@ test('the fire drill passes every injected failure and touches no live state', a
     await circuit.fail(dir, 'live-job');
     const before = readFileSync(join(dir, '.nightshift', 'circuit.json'), 'utf8');
     const results = await runDrills(dir, { push: false });
-    assert.deepEqual(results.map(r => r.name), ['tamper', 'circuit', 'routing', 'corrupt-state', 'broken-config', 'network']);
+    assert.deepEqual(results.map(r => r.name), ['tamper', 'circuit', 'routing', 'harness-crash', 'corrupt-state', 'broken-config', 'network']);
     for (const r of results) assert.ok(r.pass, `${r.name}: ${r.detail}`);
     assert.equal(readFileSync(join(dir, '.nightshift', 'circuit.json'), 'utf8'), before, 'live circuit state untouched');
     assert.equal(alert.list(dir).some(l => l.includes('[alert:preflight]') || l.includes('[alert:routing')), false, 'no sandbox alert leaked into the live project');

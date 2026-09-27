@@ -112,8 +112,8 @@ nightshift drill          # monthly; add --push to also test the phone
 ```
 
 It builds a sandbox (its own git repo and state, under `.nightshift/drill/`), injects every failure mode —
-tampered rules, three failing runs, every model banned, a corrupt state file, a broken config, an
-unreachable API host — and checks that each alert is raised **and** clears again. Live state is never
+tampered rules, three failing runs, every model banned, the harness itself crashing mid-run, a corrupt
+state file, a broken config, an unreachable API host — and checks that each alert is raised **and** clears again. Live state is never
 touched. A drill that fails raises a real alert: *the alert path itself is broken*. `status` shows when the
 alert path was last proven, and flags it overdue after 35 days.
 
@@ -151,7 +151,8 @@ pushes anything; that command is yours.
 ## Status
 
 `v0.1` — extracted from a private system that has run three scheduled jobs a day since July 2026 (191 runs at
-extraction). `npm test` runs 34 tests (seven of them pin holes a pre-release review found) on Linux with Node 20 and 22 on every push; the full Linux,
+extraction). `npm test` runs 41 tests (seven pin holes a pre-release review found; three pin incident #4, where the
+harness failed silently on its own first deployment) on Linux with Node 20 and 22 on every push; the full Linux,
 macOS and Windows matrix passed and runs on demand and on version tags. Roadmap, in order: a static status page, and a mapping of each part to the
 OWASP Agentic Top 10.
 
