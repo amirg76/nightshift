@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nightshift status</title>
+<style>
+:root{--bg:#fff;--fg:#1a1a1a;--mut:#6b6b6b;--line:#e6e6e6;--ok:#1a7f37;--okbg:#e8f5ec;--bad:#b42318;--badbg:#fdecea;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#111;--fg:#eee;--mut:#9a9a9a;--line:#2a2a2a;--ok:#4cc38a;--okbg:#0f2a1c;--bad:#ff6b6b;--badbg:#3a1414}}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,sans-serif;max-width:760px;margin-inline:auto}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:15px;margin:24px 0 8px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.sub{color:var(--mut);margin:0 0 16px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:600;font-size:13px}.ok{color:var(--ok);background:var(--okbg)}.bad{color:var(--bad);background:var(--badbg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.tile{border:1px solid var(--line);border-radius:10px;padding:12px}.n{font-size:26px;font-weight:700}.l{color:var(--mut);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}th{color:var(--mut);font-weight:600}
+pre{font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;border:1px solid var(--line);border-radius:10px;padding:12px;margin:0}
+ul{padding-left:20px}li{margin:4px 0}.foot{color:var(--mut);font-size:12px;margin-top:24px}
+</style></head><body>
+<h1>nightshift <span class="pill ok">all clear</span></h1>
+<p class="sub">Run Claude Code unattended. Know when it goes wrong. · generated 2026-09-27 17:00 UTC</p>
+<div class="grid">
+<div class="tile"><div class="n">—</div><div class="l">days running</div></div>
+<div class="tile"><div class="n">0</div><div class="l">scheduled runs</div></div>
+<div class="tile"><div class="n">0</div><div class="l">failed runs</div></div>
+<div class="tile"><div class="n">0</div><div class="l">open alerts</div></div>
+</div>
+<h2>Gates</h2>
+<table>
+<tr><th>tamper gate</th><td><span class="pill ok">clean</span></td></tr>
+<tr><th>circuit breakers</th><td><span class="pill ok">all closed</span></td></tr>
+<tr><th>fire drill</th><td><span class="pill ok">PASS · 0 day(s) ago</span></td></tr>
+<tr><th>banned models</th><td><span class="pill ok">none</span></td></tr>
+</table>
+<h2>Open alerts</h2>
+<p class="sub">none — every alert that was raised has cleared itself.</p>
+<h2>Jobs</h2>
+<table><tr><th>job</th><th>last run</th><th>result</th></tr><tr><td>daily-scan</td><td>—</td><td><span class="l">never</span></td></tr></table>
+
+<h2>Recent harness events</h2>
+<pre>no runs yet</pre>
+<p class="foot">Harness lines only. The agent's own output and prompt contents never appear here. <a href="https://github.com/amirg76/nightshift">nightshift</a></p>
+</body></html>
