@@ -83,6 +83,35 @@ none covered `promptText`.
 
 **The lesson.** A watchdog must be tested on its own failures, not only on the failures it watches for.
 
+## 5. A successful run that did nothing (found 2026-09-27, present since the first deployment)
+
+**What happened.** With incident #4 fixed, the owner suggested triggering the real scheduled task on the
+spot instead of waiting for the next morning. It finished in 32 seconds: `END exit=0`, no alert, gates
+green. The agent's entire output was: *"I don't see a request in the message — only system information.
+How can I help?"*
+
+On Windows `claude` is a `.cmd` shim, so the harness launched it through a shell — and Node joins shell
+arguments without escaping. The prompt, which contains spaces, arrived as fragments. Node even prints a
+deprecation warning saying so. The same thing had already happened in the pre-release walkthrough four
+days earlier ("tell me what to read and I'll continue"), and was ticked as a pass because the exit code
+was 0.
+
+**What caught it.** Reading the agent's output instead of the exit code.
+
+**What changed.**
+- The prompt is sent on stdin, never on the command line. What remains on the command line is flags and
+  numbers; on Windows the harness builds one quoted command line itself (a space in the binary's path,
+  like `C:\Program Files\…`, broke it too — found by the new test).
+- `jobs.<job>.expect`: a pattern the run's own output must match. Exit 0 without it is a failure (exit 65):
+  logged, marked, counted by the breaker. Only the current run's output counts.
+- A test launches a stand-in `claude` through a real shim — `.cmd` with a space in its path on Windows,
+  an executable script elsewhere — with a prompt full of quotes, `&`, `|`, `%`, `^`, a Windows path and
+  Hebrew, and checks it arrives byte for byte.
+
+**Verified.** The scheduled task, triggered the same way as every morning, ran for ten minutes and
+collected 28 posts. **The lesson.** Exit 0 means the process did not crash. It does not mean the work was
+done. Check the output for evidence of the work.
+
 ## Background: 28 job failures in seven weeks (2026-07-23 → 2026-09-06)
 
 Twenty-eight scheduled runs failed across five jobs. They cluster on bad days (23–24 July, 24–25 August,

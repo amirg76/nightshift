@@ -42,12 +42,17 @@ shared secret — put it in a file outside git (`"ntfyFile": "../.ntfy-topic"`) 
 ```json
 {
   "protected": ["CLAUDE.md", ".claude/", "prompts/", "nightshift.config.json"],
-  "alerts": { "file": "ALERTS.md", "ntfy": "https://ntfy.sh/your-private-topic" },
+  "alerts": { "file": "ALERTS.md", "ntfyFile": "../.ntfy-topic" },
   "jobs": {
-    "daily-digest": { "prompt": "prompts/daily-digest.md", "model": "sonnet", "maxTurns": 40, "retry": true }
+    "daily-digest": { "prompt": "prompts/daily-digest.md", "model": "sonnet", "maxTurns": 40, "retry": true,
+                      "expect": "digest written|nothing new" }
   }
 }
 ```
+
+A job takes a prompt file (`prompt`) or inline text (`promptText`), optionally a working directory for
+`claude` (`cwd`), and — strongly recommended — `expect`: a pattern the run's output must contain. Exit 0 only
+means `claude` did not crash; `expect` is how the harness knows the work was done (incident #5).
 
 Commit the three files `init` touched (the tamper gate compares protected files against the last commit;
 with no commit it refuses to run and says so). Then schedule one command:
@@ -151,8 +156,8 @@ pushes anything; that command is yours.
 ## Status
 
 `v0.1` — extracted from a private system that has run three scheduled jobs a day since July 2026 (191 runs at
-extraction). `npm test` runs 41 tests (seven pin holes a pre-release review found; three pin incident #4, where the
-harness failed silently on its own first deployment) on Linux with Node 20 and 22 on every push; the full Linux,
+extraction). `npm test` runs 44 tests (seven pin holes a pre-release review found; six pin incidents #4 and #5,
+where the harness failed silently on its own first deployment) on Linux with Node 20 and 22 on every push; the full Linux,
 macOS and Windows matrix passed and runs on demand and on version tags. Roadmap, in order: a static status page, and a mapping of each part to the
 OWASP Agentic Top 10.
 

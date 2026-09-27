@@ -30,15 +30,32 @@ export function tmpProject(name, { git = true, config = {} } = {}) {
 
 export function cleanup(dir) { rmSync(dir, { recursive: true, force: true }); }
 
-// A stand-in for the claude binary: exits with the code found in <root>/.tmp-exit (default 0).
+// A stand-in for the claude binary: prints its flags and the prompt it got on stdin, exits with the code
+// found in <root>/.tmp-exit (default 0).
 export function fakeClaude(dir) {
   const p = join(dir, 'fake-claude.mjs');
   writeFileSync(p, `import { readFileSync, existsSync } from 'node:fs';
 const f = process.argv[1].replace(/fake-claude\\.mjs$/, '.tmp-exit');
-console.log('fake claude ran with', process.argv.slice(2).join(' '));
+let prompt = ''; try { prompt = readFileSync(0, 'utf8'); } catch { }
+console.log('fake claude ran with', process.argv.slice(2).join(' '), '| prompt=' + JSON.stringify(prompt));
 process.exit(existsSync(f) ? Number(readFileSync(f, 'utf8')) : 0);
 `);
   return p;
+}
+
+// The same stand-in, but launched the way a real install is: through a platform shim that needs a shell on
+// Windows (claude.cmd), or an executable script elsewhere. This exercises the argument-passing path that
+// broke in INCIDENTS.md #5; a .mjs bin skips it.
+export function fakeClaudeShim(dir) {
+  const js = fakeClaude(dir);
+  if (process.platform === 'win32') {
+    const cmd = join(dir, 'fake claude.cmd'); // a space in the path, on purpose
+    writeFileSync(cmd, `@"${process.execPath}" "${js}" %*\r\n`);
+    return cmd;
+  }
+  const sh = join(dir, 'fake-claude.sh');
+  writeFileSync(sh, `#!/bin/sh\nexec "${process.execPath}" "${js}" "$@"\n`, { mode: 0o755 });
+  return sh;
 }
 export function setFakeExit(dir, code) { writeFileSync(join(dir, '.tmp-exit'), String(code)); }
 export { existsSync, readFileSync, join };

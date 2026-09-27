@@ -23,7 +23,7 @@ test('a promptText job (no prompt file) launches claude with that exact text', a
   process.env.NIGHTSHIFT_CLAUDE_BIN = fakeClaude(dir);
   try {
     assert.equal(await runJob(dir, 'j'), 0);
-    assert.match(readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8'), /fake claude ran with -p say the magic word/);
+    assert.match(readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8'), /prompt="say the magic word"/);
   } finally { delete process.env.NIGHTSHIFT_CLAUDE_BIN; done(); }
 });
 
