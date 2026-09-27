@@ -5,6 +5,8 @@
 
 **Run Claude Code unattended. Know when it goes wrong.**
 
+**[Live status →](https://amirg76.github.io/nightshift/)** a real daily job running under nightshift, rebuilt and published after every run.
+
 On 18 August 2026 a scheduled Claude Code system I run started sending every routine task to its most
 expensive model. Its own cost-saving mechanism had inverted. The log said so every morning. I found out on
 20 September — 33 days later, by accident.
