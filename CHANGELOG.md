@@ -38,7 +38,8 @@ and two reviews shaped this release.
   redacts absolute paths; a failed publish is an alert. (Replaces the shell hook `publishCmd`.)
 - Fire drill: `new-file` and `agent-commit` scenarios — nine in total.
 - `docs/OWASP.md`: what each part does about each OWASP Agentic Top 10 risk, and what it does not.
-- CI runs Linux on every push and the full Linux/macOS/Windows matrix on demand and on tags.
+- CI: Linux, macOS and Windows × Node 20, 22 and the newest LTS, on every push and weekly; Dependabot keeps
+  the Actions it uses current.
 
 ## 0.1.0 — 2026-09-20
 

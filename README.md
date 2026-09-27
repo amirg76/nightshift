@@ -162,8 +162,9 @@ Top 10: [docs/OWASP.md](docs/OWASP.md).
 ## Status
 
 `0.2.0` — running a real daily job under Windows Task Scheduler since September 2026, extracted from a system
-that has run three scheduled Claude Code jobs a day since July. `npm test` runs 57 tests on Linux (Node 20 and
-22) on every push, and on Linux, macOS and Windows on demand and on every release tag. What changed and why:
+that has run three scheduled Claude Code jobs a day since July. `npm test` runs 57 tests on Linux, macOS and
+Windows with Node 20, 22 and the newest LTS — on every push and every Monday, so a change in the platform
+shows up here first. What changed and why:
 [CHANGELOG.md](CHANGELOG.md).
 
 Not a cloud scheduler (it runs next to your files), not a sandbox, not a framework — fourteen small files. Read them.

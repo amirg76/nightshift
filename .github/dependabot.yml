@@ -1,0 +1,8 @@
+# nightshift has no runtime dependencies. The only third-party code it runs is the GitHub Actions used by CI;
+# keep those current.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
