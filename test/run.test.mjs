@@ -24,7 +24,9 @@ test('full harness: fake claude exit 0 → END exit=0, no failure marker', async
       const exit = await runJob(dir, 'daily');
       assert.equal(exit, 0);
       const log = readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8');
-      assert.match(log, /daily START/); assert.match(log, /fake claude ran with -p/); assert.match(log, /daily END exit=0/);
+      assert.match(log, /daily START/); assert.match(log, /daily END exit=0/);
+      assert.match(readFileSync(join(dir, '.nightshift', 'agent.log'), 'utf8'), /fake claude ran with -p/, 'agent output goes to agent.log');
+      assert.doesNotMatch(log, /fake claude ran/, 'and never into the harness log');
       assert.equal(circuit.report(dir).length, 0);
     });
   } finally { delete process.env.NIGHTSHIFT_CLAUDE_BIN; cleanup(dir); }
@@ -42,7 +44,7 @@ test('jobs.<job>.cwd runs claude elsewhere while state stays at the root', async
       const { execFileSync } = await import('node:child_process');
       execFileSync('git', ['add', 'nightshift.config.json'], { cwd: dir }); execFileSync('git', ['commit', '-q', '-m', 'cfg'], { cwd: dir });
       assert.equal(await runJob(dir, 'j'), 0);
-      const log = readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8');
+      const log = readFileSync(join(dir, '.nightshift', 'agent.log'), 'utf8');
       assert.match(log, new RegExp('cwd=' + join(dir, 'elsewhere').replace(/[\\\\^$.*+?()[\]{}|]/g, '\\$&')));
       assert.ok(readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8').includes('j END exit=0'), 'state still written at the root');
     });
@@ -60,9 +62,9 @@ test('three failing runs open the circuit; the fourth is skipped without launchi
       setFakeExit(dir, 1);
       for (let i = 0; i < 3; i++) assert.equal(await runJob(dir, 'j'), 1);
       assert.equal(circuit.check(dir, 'j').open, true);
-      const before = readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8').match(/fake claude ran/g).length;
+      const before = readFileSync(join(dir, '.nightshift', 'agent.log'), 'utf8').match(/fake claude ran/g).length;
       assert.equal(await runJob(dir, 'j'), 0, 'skip is a clean exit, not a failure');
-      const after = readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8').match(/fake claude ran/g).length;
+      const after = readFileSync(join(dir, '.nightshift', 'agent.log'), 'utf8').match(/fake claude ran/g).length;
       assert.equal(after, before, 'claude was not launched while the circuit is open');
       assert.match(readFileSync(join(dir, '.nightshift', 'failures.txt'), 'utf8'), /j FAILED exit=1/);
     });
@@ -86,7 +88,8 @@ test('PAUSE file stops everything; tamper gate stops everything', async () => {
       writeFileSync(join(dir, 'CLAUDE.md'), '# tampered\n');
       assert.equal(await runJob(dir, 'j'), 1);
       assert.match(readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8'), /j ABORT preflight/);
-      assert.doesNotMatch(readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8'), /fake claude ran/, 'never launched');
+      const { existsSync } = await import('node:fs');
+      assert.equal(existsSync(join(dir, '.nightshift', 'agent.log')), false, 'never launched');
     });
   } finally { delete process.env.NIGHTSHIFT_CLAUDE_BIN; cleanup(dir); }
 });

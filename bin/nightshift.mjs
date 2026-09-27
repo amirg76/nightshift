@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // nightshift — run Claude Code unattended, and know when it goes wrong.
-import { findRoot, loadConfig, stateDir } from '../lib/paths.mjs';
+import { findRoot, loadConfig, stateDir, log } from '../lib/paths.mjs';
 
 const [cmd, ...rest] = process.argv.slice(2);
 const mods = {
@@ -62,13 +62,9 @@ try {
   // log and to ALERTS.md. Neither step may throw.
   console.error(`nightshift ${cmd}: ${e.message}`);
   try {
-    const { appendFileSync, readFileSync, existsSync } = await import('node:fs');
-    const { join } = await import('node:path');
     const root = findRoot();
-    appendFileSync(join(stateDir(root), 'log.txt'), `[${new Date().toISOString()}] UNCAUGHT in "${cmd}": ${e.message}\n`);
-    const f = join(root, 'ALERTS.md');
-    const cur = existsSync(f) ? readFileSync(f, 'utf8') : '# Alerts\n\n';
-    if (!cur.includes('[alert:uncaught]')) appendFileSync(f, `${cur.endsWith('\n') ? '' : '\n'}- ⚠ [alert:uncaught] ${new Date().toISOString().slice(0, 10)} — nightshift ${cmd} crashed: ${e.message} **Fix:** run the same command by hand to see it, then report it\n`);
+    log(root, `UNCAUGHT in "${cmd}": ${e.message}`);
+    (await import('../lib/alert.mjs')).rawAdd(root, 'uncaught', `nightshift ${cmd} crashed: ${e.message} **Fix:** run the same command by hand to see it, then report it`);
   } catch { }
   code = 1;
 }

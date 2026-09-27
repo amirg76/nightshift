@@ -32,12 +32,30 @@ test('the page is built after a run, counts runs and failures, and never shows a
   } finally { srv.close(); delete process.env.NIGHTSHIFT_CLAUDE_BIN; cleanup(dir); }
 });
 
-test('page.out is honoured and HTML is escaped', () => {
+test('a redacted page hides absolute paths; an unredacted local page keeps them', async () => {
+  const dir = tmpProject('page-redact', { git: false, config: { page: { redact: true } } });
+  try {
+    mkdirSync(join(dir, '.nightshift'), { recursive: true });
+    appendFileSync(join(dir, '.nightshift', 'log.txt'), [
+      '[2026-09-01T06:00:00.000Z] PAGE built E:\\new-repos\\secret-client\\.nightshift\\status.html',
+      '[2026-09-01T06:00:01.000Z] opened /home/amir/work/x.txt and /Users/a/b and \\\\server\\share\\f',
+      '[2026-09-01T06:00:02.000Z] relative prompts/job.md stays',
+    ].join('\n') + '\n');
+    const html = readFileSync(await build(dir), 'utf8');
+    assert.doesNotMatch(html, /secret-client|\/home\/amir|\/Users\/a|server\\share/);
+    assert.match(html, /&lt;path&gt;/);
+    assert.match(html, /prompts\/job\.md stays/, 'relative paths are not machine layout and stay');
+    writeFileSync(join(dir, 'nightshift.config.json'), JSON.stringify({ page: { redact: false } }));
+    assert.match(readFileSync(await build(dir), 'utf8'), /secret-client/, 'a local-only page is not redacted');
+  } finally { cleanup(dir); }
+});
+
+test('page.out is honoured and HTML is escaped', async () => {
   const dir = tmpProject('page-out', { git: false, config: { page: { out: 'docs/index.html' }, jobs: { 'a<b': { prompt: 'p.md' } } } });
   try {
     mkdirSync(join(dir, '.nightshift'), { recursive: true });
     appendFileSync(join(dir, '.nightshift', 'log.txt'), `[2026-09-01T06:00:00.000Z] ==== a<b START ====\n<b>agent output line</b>\n[2026-09-01T06:01:00.000Z] ==== a<b END exit=0 ====\n`);
-    const out = build(dir);
+    const out = await build(dir);
     assert.equal(out, join(dir, 'docs', 'index.html'));
     const html = readFileSync(out, 'utf8');
     assert.match(html, /a&lt;b/); assert.doesNotMatch(html, /<b>agent output/);

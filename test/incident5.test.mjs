@@ -25,7 +25,7 @@ test('the whole prompt reaches claude intact through a real shim (claude.cmd on 
   process.env.NIGHTSHIFT_CLAUDE_BIN = fakeClaudeShim(dir);
   try {
     assert.equal(await runJob(dir, 'j'), 0);
-    const log = readFileSync(join(dir, '.nightshift', 'log.txt'), 'utf8');
+    const log = readFileSync(join(dir, '.nightshift', 'agent.log'), 'utf8');
     assert.ok(log.includes('prompt=' + JSON.stringify(NASTY)), 'prompt arrived byte-for-byte:\n' + log);
     assert.match(log, /ran with -p --model sonnet --max-turns 3 --permission-mode acceptEdits/);
   } finally { delete process.env.NIGHTSHIFT_CLAUDE_BIN; done(); }
