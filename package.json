@@ -1,14 +1,18 @@
 {
   "name": "nightshift-harness",
-  "version": "0.1.0",
-  "description": "Run Claude Code unattended. Know when it goes wrong. Tamper gate, deny-by-default hook, circuit breaker, model trust ledger, human alerts.",
+  "version": "0.2.0",
+  "description": "Run Claude Code unattended. Know when it goes wrong. Tamper gate, deny-by-default hook, circuit breaker, model trust ledger, monthly fire drill.",
   "type": "module",
   "bin": { "nightshift": "bin/nightshift.mjs" },
-  "engines": { "node": ">=18" },
+  "engines": { "node": ">=20" },
   "scripts": {
     "test": "node test/run-all.mjs"
   },
-  "keywords": ["claude-code", "agent", "harness", "guardrails", "unattended", "cron", "circuit-breaker", "hooks"],
+  "keywords": ["claude-code", "ai-agents", "agent-security", "guardrails", "harness", "unattended", "circuit-breaker", "hooks"],
+  "author": "amirg76",
   "license": "MIT",
-  "files": ["bin", "lib", "hooks", "README.md", "INCIDENTS.md", "LICENSE"]
+  "repository": { "type": "git", "url": "git+https://github.com/amirg76/nightshift.git" },
+  "homepage": "https://github.com/amirg76/nightshift#readme",
+  "bugs": { "url": "https://github.com/amirg76/nightshift/issues" },
+  "files": ["bin", "lib", "hooks", "nightshift.config.example.json", "README.md", "INCIDENTS.md", "SECURITY.md", "CHANGELOG.md", "docs", "LICENSE"]
 }
