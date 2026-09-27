@@ -5,3 +5,4 @@ ALERTS.md
 *.log
 .env
 .env.*
+.ntfy-topic
