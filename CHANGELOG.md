@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- **Docs held to the code by a test.** `test/docs.test.mjs` fails CI when the README's test count, drill count
+  or command list drifts from the code, or when a config key is documented but unknown (or known but
+  undocumented). Its first run found two stale claims: "57 tests" (61) and `allowAgentCommits` missing from
+  the README. `DRILLS` is exported from `lib/drill.mjs` for it. CI no longer skips Markdown-only pushes —
+  otherwise a README edit would have bypassed the very test that checks it.
+
 ## 0.2.0 — 2026-09-27 · first public release
 
 Deployed on a real daily job for the first time, then reviewed end to end before going public. Two incidents

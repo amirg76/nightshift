@@ -1,13 +1,15 @@
 name: test
 # Full matrix on every push and pull request (Actions minutes are free for public repositories), plus a
 # weekly run so a change in Node, the runners or the actions shows up here before it shows up for a user.
+# Markdown is NOT ignored: test/docs.test.mjs holds README.md and CHANGELOG.md to the code, so a docs-only
+# push is exactly the one that must run.
 on:
   push:
     branches: [main]
     tags: ['v*']
-    paths-ignore: ['**/*.md', 'LICENSE', 'docs/**']
+    paths-ignore: ['LICENSE', 'docs/**']
   pull_request:
-    paths-ignore: ['**/*.md', 'LICENSE', 'docs/**']
+    paths-ignore: ['LICENSE', 'docs/**']
   schedule:
     - cron: '17 5 * * 1'   # Mondays 05:17 UTC
   workflow_dispatch:

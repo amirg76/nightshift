@@ -63,6 +63,8 @@ A job takes a prompt file (`prompt`) or inline text (`promptText`); optionally a
 `claude` (`cwd` — protected files and the tamper checks always refer to the project root, not to `cwd`), `timeoutMinutes`, and — strongly recommended — **`expect`**, a pattern the run's output must
 contain. Exit 0 only means `claude` did not crash; `expect` is how the harness knows the work was done (#5).
 The ntfy topic name is a shared secret: keep it in a file outside git, as above.
+An unattended agent may not commit: the post-run tamper check treats a commit as a human's approval. Set
+`allowAgentCommits: true` only for a project whose jobs exist to commit — protected files stay guarded anyway.
 
 Commit what `init` touched — the tamper gate compares protected files against the last commit — then
 schedule one command:
@@ -164,7 +166,7 @@ Top 10: [docs/OWASP.md](docs/OWASP.md).
 ## Status
 
 `0.2.0` — running a real daily job under Windows Task Scheduler since September 2026, extracted from a system
-that has run three scheduled Claude Code jobs a day since July. `npm test` runs 57 tests on Linux, macOS and
+that has run three scheduled Claude Code jobs a day since July. `npm test` runs 61 tests on Linux, macOS and
 Windows with Node 20, 22 and the newest LTS — on every push and every Monday, so a change in the platform
 shows up here first. What changed and why:
 [CHANGELOG.md](CHANGELOG.md).
