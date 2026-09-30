@@ -14,27 +14,35 @@ pre{font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-word;border:
 ul{padding-left:20px}li{margin:4px 0}.foot{color:var(--mut);font-size:12px;margin-top:24px}
 </style></head><body>
 <h1>nightshift <span class="pill ok">all clear</span></h1>
-<p class="sub">Run Claude Code unattended. Know when it goes wrong. · generated 2026-09-28 18:12 UTC</p>
+<p class="sub">Run Claude Code unattended. Know when it goes wrong. · generated 2026-09-30 06:48 UTC</p>
 <div class="grid">
-<div class="tile"><div class="n">1</div><div class="l">days running · since 2026-09-27</div></div>
-<div class="tile"><div class="n">1</div><div class="l">scheduled runs</div></div>
-<div class="tile"><div class="n">0</div><div class="l">failed runs</div></div>
+<div class="tile"><div class="n">2</div><div class="l">days running · since 2026-09-27</div></div>
+<div class="tile"><div class="n">2</div><div class="l">scheduled runs</div></div>
+<div class="tile"><div class="n">1</div><div class="l">failed runs</div></div>
 <div class="tile"><div class="n">0</div><div class="l">open alerts</div></div>
 </div>
 <h2>Gates</h2>
 <table>
 <tr><th>tamper gate</th><td><span class="pill ok">clean</span></td></tr>
 <tr><th>circuit breakers</th><td><span class="pill ok">all closed</span></td></tr>
-<tr><th>fire drill</th><td><span class="pill ok">PASS · 0 day(s) ago</span></td></tr>
+<tr><th>fire drill</th><td><span class="pill ok">PASS · 1 day(s) ago</span></td></tr>
 <tr><th>banned models</th><td><span class="pill ok">none</span></td></tr>
 </table>
 <h2>Open alerts</h2>
 <p class="sub">none — every alert that was raised has cleared itself.</p>
 <h2>Jobs</h2>
-<table><tr><th>job</th><th>last run</th><th>result</th></tr><tr><td>daily-scan</td><td>2026-09-28T06:53:27.465Z</td><td><span class="pill ok">ok</span></td></tr></table>
+<table><tr><th>job</th><th>last run</th><th>result</th></tr><tr><td>daily-scan</td><td>2026-09-30T06:48:17.279Z</td><td><span class="pill ok">ok</span></td></tr></table>
 
 <h2>Recent harness events</h2>
-<pre>2026-09-28 18:12  DRILL 2026-09-28T18:12:45.031Z PASS tamper:ok new-file:ok agent-commit:ok circuit:ok routing:ok harness-crash:ok corrupt-state:ok broken-config:ok network:ok push:ok
+<pre>2026-09-30 06:48  ==== daily-scan END exit=0 ====
+2026-09-30 06:47  ==== daily-scan START ====
+2026-09-30 06:47  ALERT CLEARED [alert:netwait:daily-scan]
+2026-09-29 06:50  NTFY failed: fetch failed
+2026-09-29 06:50  ALERT [alert:netwait:daily-scan]
+2026-09-29 06:50  daily-scan ABORT no-network
+2026-09-28 18:12  PUBLISH ok → gh-pages
+2026-09-28 18:12  PAGE built
+2026-09-28 18:12  DRILL 2026-09-28T18:12:45.031Z PASS tamper:ok new-file:ok agent-commit:ok circuit:ok routing:ok harness-crash:ok corrupt-state:ok broken-config:ok network:ok push:ok
 2026-09-28 18:12  NTFY ok
 2026-09-28 06:53  PUBLISH ok → gh-pages
 2026-09-28 06:53  PAGE built
